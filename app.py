@@ -45,6 +45,7 @@ if __name__ == '__main__':
     import pandas as pd
     import numpy as np
     from pandas import read_csv
+    from datetime import datetime
     from sklearn.preprocessing import LabelEncoder
     from sklearn.preprocessing import MinMaxScaler
     from pandas import DataFrame
@@ -58,50 +59,44 @@ if __name__ == '__main__':
     from keras.layers import Bidirectional
     from math import sqrt
 
+    import warnings                                  # do not disturbe mode
+    warnings.filterwarnings('ignore')
+
+    # Load packages
+    import statsmodels.formula.api as smf            # statistics and econometrics
+    import statsmodels.tsa.api as smt
+    import statsmodels.api as sm
+    import scipy.stats as scs
+
+    from itertools import product                    # some useful functions
+    from tqdm import tqdm_notebook
+
+    # Importing everything from forecasting quality metrics
+    from sklearn.metrics import r2_score, median_absolute_error, mean_absolute_error
+    from sklearn.metrics import median_absolute_error, mean_squared_error, mean_squared_log_error
+
+
     data_all = read_csv(args.training, encoding='utf-8', header=0, index_col=0)
 
-    values = data_all.values    
-    values = values.astype('float32')
-    reframed = series_to_supervised(values, 1, 8)
-    reframed.drop(reframed.columns[   np.concatenate(( list(range(8,14)), list(range(15,21)), list(range(22,28)),\
-                                                    list(range(29,35)), list(range(36,42)), list(range(43,49)),\
-                                                    list(range(50,56)), list(range(57,63)) ))   ]   , axis=1, inplace=True)
-    print(reframed.head())
+    start = datetime(2020, 3, 21)
+    end = datetime(2021, 3, 21)
+    rng = pd.date_range(start, end)
+    target_data = pd.Series(data_all.values[:, 0], index=rng)
 
-    scaler = MinMaxScaler(feature_range=(0, 1))
-    scaled = scaler.fit_transform(reframed)
-    values = scaled
+    p, q, P, Q = 1, 1, 0, 1
+    d = 1
+    D = 1
+    s = 7
 
-    n_train_hours = 358
-    train = values[:n_train_hours, :]
-    test = values[n_train_hours:, :]
-
-    train_X, train_y = train[:, :-8], train[:,-8:]
-    test_X, test_y = test[:, :-8], test[:, -8:]
-
-    train_X = train_X.reshape((train_X.shape[0], 1, train_X.shape[1]))
-    test_X = test_X.reshape((test_X.shape[0], 1, test_X.shape[1]))
-    print(train_X.shape, train_y.shape, test_X.shape, test_y.shape)
-
-    model = Sequential()
-    model.add(LSTM(50, activation='relu',input_shape=(train_X.shape[1], train_X.shape[2])))
-    model.add(Dense(8))
-    model.compile(loss='mse', optimizer='adam')
-    history = model.fit(train_X, train_y, epochs=300, batch_size=8,  verbose=2, shuffle=False)
-
-    temp = scaler.transform([np.concatenate( ( list(data_all.iloc[-1]), list(range(0,8)) ) )])
-    test_X = np.array([[  temp[0][:-8] ]])
-    # 开始预测
-    yhat = model.predict(test_X)
-    test_X = test_X.reshape((test_X.shape[0], test_X.shape[2]))
-    # 预测值反转缩放
-    inv_yhat = concatenate((test_X[:, 0:], yhat), axis=1)
-    inv_yhat = scaler.inverse_transform(inv_yhat)
-    inv_yhat = inv_yhat[:,-7:]
-    print(inv_yhat)
-
+    best_model=sm.tsa.statespace.SARIMAX(target_data, order=(p, d, q), 
+                                            seasonal_order=(P, D, Q, s)).fit(disp=-1)
+    print(best_model.summary())
+    
+    n_steps = 8
+    forecast = best_model.predict(start = target_data.shape[0], end = target_data.shape[0]+n_steps)
+    
     output = []
-    for item in inv_yhat[0]:
+    for item in forecast[1:-1]:
         output.append(int(round(item*10)))
 
     date = ['20210323', '20210324', '20210325', '20210326', '20210327', '20210328', '20210329']
