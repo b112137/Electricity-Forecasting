@@ -1,31 +1,5 @@
 #!/usr/bin/python
 # -*- coding: UTF-8 -*-
-
-# 将数据转换成监督学习问题
-def series_to_supervised(data, n_in=1, n_out=1, dropnan=True):
-    n_vars = 1 if type(data) is list else data.shape[1]
-    df = DataFrame(data)
-    cols, names = list(), list()
-    # 输入序列(t-n, ... t-1)
-    for i in range(n_in, 0, -1):
-        cols.append(df.shift(i))
-        names += [('var%d(t-%d)' % (j+1, i)) for j in range(n_vars)]
-    # 预测序列(t, t+1, ... t+n)
-    for i in range(0, n_out):
-        cols.append(df.shift(-i))
-        if i == 0:
-            names += [('var%d(t)' % (j+1)) for j in range(n_vars)]
-        else:
-            names += [('var%d(t+%d)' % (j+1, i)) for j in range(n_vars)]
-    # 把所有放在一起
-    agg = concat(cols, axis=1)
-    agg.columns = names
-    # 删除空值行
-    if dropnan:
-        agg.dropna(inplace=True)
-    return agg
-
-
 if __name__ == '__main__':
     # You should not modify this part, but additional arguments are allowed.
     import argparse
