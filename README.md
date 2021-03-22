@@ -11,6 +11,7 @@
 3. 透過Box-Cox檢定找出Box-Cox transformation之lambda
 ![](./img/2.png)
 4. 透過Grid-Search找出SARIMA模型之hyperpareters
+
 ![](./img/4.png)
 5. 模型配適
 6. 預測未來7天備載容量
