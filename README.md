@@ -3,9 +3,7 @@
 `python app.p``y` `--``training` `"``Your Training Data``"` `--output submission.csv`
 
 ## Our Idea
-
 ### SARIMA 模型配適
-
 1. 觀察時間序列走勢，繪製ACF及PACF
 ![](./img/1.png)
 2. 經過ACF圖形得知原時間序列不平穩，並透過Dickey-Fuller差分檢定，決定原時間序列需做一階差分。
