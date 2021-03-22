@@ -1,6 +1,6 @@
 # Electricity-Forecasting
 ## Command 
-`python app.p``y` `--``training` `"``Your Training Data``"` `--output submission.csv`
+`python app.py --training training_data.csv --output submission.csv`
 
 ## Our Idea
 ### SARIMA 模型配適
